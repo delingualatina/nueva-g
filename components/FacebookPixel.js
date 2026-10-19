@@ -1,9 +1,20 @@
 'use client';
 
 import Script from 'next/script';
-import { FB_PIXEL_ID } from '@/lib/fpixel';
+import { FB_PIXEL_ID, FB_TEST_EVENT_CODE } from '@/lib/fpixel';
 
 export default function FacebookPixel() {
+  const pageViewCall =
+    FB_TEST_EVENT_CODE && FB_TEST_EVENT_CODE.trim() !== ''
+      ? `fbq('track', 'PageView', {}, { test_event_code: '${FB_TEST_EVENT_CODE.trim()}' });`
+      : `fbq('track', 'PageView');`;
+
+  const noscriptUrl = `https://www.facebook.com/tr?id=${FB_PIXEL_ID}&ev=PageView&noscript=1${
+    FB_TEST_EVENT_CODE && FB_TEST_EVENT_CODE.trim() !== ''
+      ? `&test_event_code=${FB_TEST_EVENT_CODE.trim()}`
+      : ''
+  }`;
+
   return (
     <>
       <Script
@@ -20,7 +31,7 @@ export default function FacebookPixel() {
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '${FB_PIXEL_ID}');
-            fbq('track', 'PageView');
+            ${pageViewCall}
           `,
         }}
       />
@@ -29,7 +40,7 @@ export default function FacebookPixel() {
           height="1"
           width="1"
           style={{ display: 'none' }}
-          src={`https://www.facebook.com/tr?id=${FB_PIXEL_ID}&ev=PageView&noscript=1`}
+          src={noscriptUrl}
           alt=""
         />
       </noscript>
