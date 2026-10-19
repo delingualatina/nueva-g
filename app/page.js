@@ -44,20 +44,22 @@ export default function AccessPage() {
       value: 0.0,
     });
 
-    if (isAutomated) {
-      // Redirección directa a la URL automatizada
-      const automatedUrl =
-        process.env.NEXT_PUBLIC_AUTOMATED_URL || 'https://ganamosunico.com/landing';
-      window.location.href = automatedUrl;
-    } else {
-      // Mensaje dinámico y redirección a WhatsApp
-      const rawNumber =
-        process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491178968766';
-      const cleanNumber = rawNumber.replace(/[^0-9]/g, '');
-      const mensaje = `Hola, completé el acceso en la web. Mi nombre es ${userName}, soy mayor de 18 y elijo: ${atencion}. Quiero abrir mi usuario.`;
-      const urlWhatsapp = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(mensaje)}`;
-      window.location.href = urlWhatsapp;
-    }
+    setTimeout(() => {
+      if (isAutomated) {
+        // Redirección directa a la URL automatizada
+        const automatedUrl =
+          process.env.NEXT_PUBLIC_AUTOMATED_URL || 'https://ganamosunico.com/landing';
+        window.location.href = automatedUrl;
+      } else {
+        // Mensaje dinámico y redirección a WhatsApp
+        const rawNumber =
+          process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491178968766';
+        const cleanNumber = rawNumber.replace(/[^0-9]/g, '');
+        const mensaje = `Hola, completé el acceso en la web. Mi nombre es ${userName}, soy mayor de 18 y elijo: ${atencion}. Quiero abrir mi usuario.`;
+        const urlWhatsapp = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(mensaje)}`;
+        window.location.href = urlWhatsapp;
+      }
+    }, 300);
   };
 
   return (
