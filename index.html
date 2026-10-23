@@ -5,19 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Acceso Oficial</title>
   
-  <!-- Descomentá y poné tu Pixel si usás el script tradicional -->
-  <!--
-  <script>
-    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-    document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', 'TU_ID_DE_PIXEL');
-    fbq('track', 'PageView');
-  </script>
-  -->
-
   <style>
     * {
       box-sizing: border-box;
@@ -297,8 +284,9 @@
           Transferencia bancaria (CBU/CVU)
         </label>
 
-        <label class="option-label" style="opacity: 0.7;">
-          <input type="radio" name="medioPago" value="sin_saldo">
+        <!-- Descarte automático inmediato al tocar esta opción -->
+        <label class="option-label" style="opacity: 0.7;" onclick="descartarUsuario()">
+          <input type="radio" name="medioPago" value="sin_saldo" onchange="descartarUsuario()">
           No dispongo de saldo para transferir
         </label>
       </div>
@@ -321,7 +309,7 @@
 
   <script>
     // REEMPLAZÁ CON TU WHATSAPP (Solo números: sin "+", guiones ni espacios)
-    const NUMERO_WHATSAPP = "5491100000000"; 
+    const NUMERO_WHATSAPP = "5491178968766"; 
 
     function irAPantalla2() {
       const mayorEdad = document.querySelector('input[name="edad"]:checked').value;
@@ -341,14 +329,18 @@
       document.getElementById('screen-2').classList.add('active');
     }
 
+    // EXPULSA APENAS SE TOCA "NO DISPONGO DE SALDO" (SIN TOCAR EL BOTÓN NI DISPARAR LEAD)
+    function descartarUsuario() {
+      alert("El acceso y la asignación de asesor están reservados exclusivamente para usuarios con saldo operativo disponible.");
+      window.location.href = "https://www.google.com";
+    }
+
     function finalizarYEnviar() {
       const nombre = document.getElementById('nombreInput').value.trim() || "Usuario";
       const medio = document.querySelector('input[name="medioPago"]:checked').value;
 
-      // FILTRO DE CORTE: Si no tiene saldo lo sacamos de la web SIN activar evento Lead de Meta ni mandarlo a WPP
       if (medio === "sin_saldo") {
-        alert("El acceso y la asignación de asesor están reservados exclusivamente para usuarios con saldo operativo disponible.");
-        window.location.href = "https://www.google.com";
+        descartarUsuario();
         return;
       }
 
@@ -359,7 +351,7 @@
 
       // 2. REDIRECCIÓN A WHATSAPP
       const mensaje = `Hola, completé el acceso en la web. Mi nombre es ${nombre}, soy mayor de 18 y opero con ${medio}. Quiero habilitar mi usuario.`;
-      const urlWhatsapp = `https://wa.me/${+5491178968766}?text=${encodeURIComponent(mensaje)}`;
+      const urlWhatsapp = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(mensaje)}`;
 
       window.location.href = urlWhatsapp;
     }

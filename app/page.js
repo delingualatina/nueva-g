@@ -7,11 +7,9 @@ export default function AccessPage() {
   const [step, setStep] = useState(1);
   const [edad, setEdad] = useState('si');
   const [nombre, setNombre] = useState('');
-  const [atencion, setAtencion] = useState('Atención personalizada por WhatsApp 24hs');
+  const [medioPago, setMedioPago] = useState('Mercado Pago / Billeteras virtuales');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const isAutomated = atencion === 'Automatizado por la página 24hs';
 
   const handleNextStep = (e) => {
     if (e) e.preventDefault();
@@ -30,35 +28,40 @@ export default function AccessPage() {
     setStep(2);
   };
 
+  const descartarUsuario = () => {
+    alert('El acceso y la asignación de asesor están reservados exclusivamente para usuarios con saldo operativo disponible.');
+    window.location.href = 'https://www.google.com';
+  };
+
   const handleFinalSubmit = (e) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
-    setIsSubmitting(true);
 
     const userName = nombre.trim() || 'Usuario';
 
-    // Disparo del Píxel de Meta (Lead Event)
+    // FILTRO DE CORTE: Si no tiene saldo lo sacamos de la web SIN activar evento Lead de Meta ni mandarlo a WPP
+    if (medioPago === 'sin_saldo') {
+      descartarUsuario();
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // 1. DISPARO DEL PÍXEL (Solo si tiene saldo y va a WhatsApp)
     trackLead({
-      content_name: isAutomated ? 'Acceso Automatizado' : 'Acceso WhatsApp Asesor',
+      content_name: `Acceso WhatsApp Asesor - ${medioPago}`,
       currency: 'ARS',
       value: 0.0,
     });
 
+    // 2. REDIRECCIÓN A WHATSAPP
     setTimeout(() => {
-      if (isAutomated) {
-        // Redirección directa a la URL automatizada
-        const automatedUrl =
-          process.env.NEXT_PUBLIC_AUTOMATED_URL || 'https://ganamosunico.com/landing';
-        window.location.href = automatedUrl;
-      } else {
-        // Mensaje dinámico y redirección a WhatsApp
-        const rawNumber =
-          process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491178968766';
-        const cleanNumber = rawNumber.replace(/[^0-9]/g, '');
-        const mensaje = `Hola, completé el acceso en la web. Mi nombre es ${userName}, soy mayor de 18 y elijo: ${atencion}. Quiero abrir mi usuario.`;
-        const urlWhatsapp = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(mensaje)}`;
-        window.location.href = urlWhatsapp;
-      }
+      const rawNumber =
+        process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491178968766';
+      const cleanNumber = rawNumber.replace(/[^0-9]/g, '');
+      const mensaje = `Hola, completé el acceso en la web. Mi nombre es ${userName}, soy mayor de 18 y opero con ${medioPago}. Quiero habilitar mi usuario.`;
+      const urlWhatsapp = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(mensaje)}`;
+      window.location.href = urlWhatsapp;
     }, 300);
   };
 
@@ -67,17 +70,17 @@ export default function AccessPage() {
       <div className="bg-glow-orb" aria-hidden="true" />
 
       <main className="page-container">
-        {/* Insignias superiores de confianza */}
+        {/* Insignias superiores */}
         <div className="status-badge">
           <span className="status-dot" />
           <span>SISTEMA 24/7 OPERATIVO</span>
         </div>
 
         <div className="platform-badge">
-          💎 PLATAFORMA Nº 1 DE ARGENTINA
+          💎 PLATAFORMA N° 1 DE ARGENTINA
         </div>
 
-        {/* Tarjeta de Acceso */}
+        {/* Contenedor tipo Tarjeta */}
         <div className="card">
           <h1 className="card-title">Configuración de acceso</h1>
 
@@ -89,7 +92,13 @@ export default function AccessPage() {
                 <span>50%</span>
               </div>
 
-              <div className="progress-bar-bg" role="progressbar" aria-valuenow={50} aria-valuemin={0} aria-valuemax={100}>
+              <div
+                className="progress-bar-bg"
+                role="progressbar"
+                aria-valuenow={50}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
                 <div className="progress-bar-fill" style={{ width: '50%' }} />
               </div>
 
@@ -134,7 +143,7 @@ export default function AccessPage() {
                   </label>
                 </div>
 
-                {/* Pregunta 2: Nombre */}
+                {/* Pregunta 2: Nombre o Apodo */}
                 <div className="question-block">
                   <label htmlFor="nombreInput" className="question-label">
                     Ingresá tu nombre o apodo
@@ -155,8 +164,7 @@ export default function AccessPage() {
                 </div>
 
                 <button type="submit" className="btn-next" id="btn-continue">
-                  <span>Continuar</span>
-                  <span>→</span>
+                  <span>Continuar →</span>
                 </button>
               </form>
             </div>
@@ -170,93 +178,101 @@ export default function AccessPage() {
                 <span>100%</span>
               </div>
 
-              <div className="progress-bar-bg" role="progressbar" aria-valuenow={100} aria-valuemin={0} aria-valuemax={100}>
+              <div
+                className="progress-bar-bg"
+                role="progressbar"
+                aria-valuenow={100}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
                 <div className="progress-bar-fill" style={{ width: '100%' }} />
               </div>
 
               <form onSubmit={handleFinalSubmit}>
-                {/* Pregunta 3: Atención */}
+                {/* Pregunta de filtro de pago / solvencia */}
                 <div className="question-block">
-                  <label className="question-label">¿Cómo preferís la atención?</label>
+                  <label className="question-label">¿Qué medio utilizás para transferencias?</label>
 
                   <label
                     className={`option-label ${
-                      atencion === 'Atención personalizada por WhatsApp 24hs' ? 'selected' : ''
+                      medioPago === 'Mercado Pago / Billeteras virtuales' ? 'selected' : ''
                     }`}
-                    onClick={() => setAtencion('Atención personalizada por WhatsApp 24hs')}
+                    onClick={() => setMedioPago('Mercado Pago / Billeteras virtuales')}
                   >
                     <input
                       type="radio"
-                      name="atencion"
-                      value="Atención personalizada por WhatsApp 24hs"
-                      checked={atencion === 'Atención personalizada por WhatsApp 24hs'}
-                      onChange={() => setAtencion('Atención personalizada por WhatsApp 24hs')}
+                      name="medioPago"
+                      value="Mercado Pago / Billeteras virtuales"
+                      checked={medioPago === 'Mercado Pago / Billeteras virtuales'}
+                      onChange={() => setMedioPago('Mercado Pago / Billeteras virtuales')}
                     />
-                    <span>Atención personalizada por WhatsApp 24hs</span>
+                    <span>Mercado Pago / Billeteras virtuales</span>
                   </label>
 
                   <label
                     className={`option-label ${
-                      atencion === 'Automatizado por la página 24hs' ? 'selected' : ''
+                      medioPago === 'Transferencia bancaria (CBU/CVU)' ? 'selected' : ''
                     }`}
-                    onClick={() => setAtencion('Automatizado por la página 24hs')}
+                    onClick={() => setMedioPago('Transferencia bancaria (CBU/CVU)')}
                   >
                     <input
                       type="radio"
-                      name="atencion"
-                      value="Automatizado por la página 24hs"
-                      checked={atencion === 'Automatizado por la página 24hs'}
-                      onChange={() => setAtencion('Automatizado por la página 24hs')}
+                      name="medioPago"
+                      value="Transferencia bancaria (CBU/CVU)"
+                      checked={medioPago === 'Transferencia bancaria (CBU/CVU)'}
+                      onChange={() => setMedioPago('Transferencia bancaria (CBU/CVU)')}
                     />
-                    <span>Automatizado por la página 24hs</span>
+                    <span>Transferencia bancaria (CBU/CVU)</span>
+                  </label>
+
+                  <label
+                    className="option-label"
+                    style={{ opacity: 0.7 }}
+                    onClick={descartarUsuario}
+                  >
+                    <input
+                      type="radio"
+                      name="medioPago"
+                      value="sin_saldo"
+                      onChange={descartarUsuario}
+                    />
+                    <span>No dispongo de saldo para transferir</span>
                   </label>
                 </div>
 
-                {/* Chip Dinámico de Estado */}
-                <div className={`operator-chip ${isAutomated ? 'automated' : ''}`}>
-                  <span className={`status-dot ${isAutomated ? 'automated' : ''}`} />
-                  <span>
-                    {isAutomated
-                      ? 'Redirección automatizada lista...'
-                      : 'Asignando operador disponible...'}
-                  </span>
+                {/* Indicador de operador */}
+                <div className="operator-chip">
+                  <span className="status-dot" />
+                  <span>Asignando operador disponible...</span>
                 </div>
-
-                {/* Botón Dinámico de Acción */}
-                {isAutomated ? (
-                  <button
-                    type="submit"
-                    className="btn-submit-automated"
-                    id="btn-submit-action"
-                    disabled={isSubmitting}
-                  >
-                    <span>{isSubmitting ? 'Ingresando...' : 'Ingresar directamente a la página'}</span>
-                    <span>🚀</span>
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    className="btn-submit-whatsapp"
-                    id="btn-submit-action"
-                    disabled={isSubmitting}
-                  >
-                    <span>
-                      {isSubmitting
-                        ? 'Conectando...'
-                        : 'Generar acceso y chatear con asesor'}
-                    </span>
-                    <span>📲</span>
-                  </button>
-                )}
 
                 <button
-                  type="button"
-                  className="btn-back"
-                  onClick={() => setStep(1)}
+                  type="submit"
+                  className="btn-submit"
+                  id="btn-submit-action"
                   disabled={isSubmitting}
                 >
-                  ← Volver al paso anterior
+                  <span>
+                    {isSubmitting
+                      ? 'Conectando...'
+                      : 'Generar acceso y chatear con asesor'}
+                  </span>
+                  <span>📲</span>
                 </button>
+
+                <p style={{ textAlign: 'center', marginTop: '15px' }}>
+                  <a
+                    href="javascript:void(0)"
+                    onClick={() => setStep(1)}
+                    style={{
+                      color: 'rgba(255,255,255,0.4)',
+                      fontSize: '12px',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    ← Volver al paso anterior
+                  </a>
+                </p>
               </form>
             </div>
           )}
